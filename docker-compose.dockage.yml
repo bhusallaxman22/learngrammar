@@ -1,0 +1,108 @@
+# Docker Compose for Dockage/TrueNAS Deployment
+# This is a production-ready configuration for deploying to Dockage
+
+version: '3.8'
+
+services:
+  grammar-app:
+    # Use pre-built image (build this first with: docker build -t grammar-learning-app:latest .)
+    image: grammar-learning-app:latest
+    
+    container_name: grammar-learning-app
+    hostname: grammar-learning-app
+    
+    # Port Configuration
+    # Change the first port (8080) to your desired external port
+    # The second port (80) must remain as is (nginx inside container)
+    ports:
+      - "8080:80"
+    
+    # Restart Policy
+    restart: unless-stopped
+    
+    # Environment Variables
+    environment:
+      - NODE_ENV=production
+      - TZ=America/New_York  # Change to your timezone (e.g., America/Los_Angeles, Europe/London)
+    
+    # Resource Limits
+    # Adjust these based on your TrueNAS resources
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'        # Max 1 CPU core (adjust as needed)
+          memory: 512M       # Max 512MB RAM (adjust as needed)
+        reservations:
+          cpus: '0.25'       # Reserve 0.25 CPU core
+          memory: 128M       # Reserve 128MB RAM
+    
+    # Health Check
+    # Ensures container is healthy and auto-restarts if unhealthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Networking
+    networks:
+      - grammar-network
+    
+    # DNS Configuration (optional)
+    # dns:
+    #   - 8.8.8.8
+    #   - 8.8.4.4
+    
+    # Labels for Dockage Management
+    labels:
+      com.docker.compose.project: "grammar-learning"
+      app.name: "Grammar Learning App"
+      app.description: "Interactive English Grammar Learning Platform with AI"
+      app.version: "1.0.0"
+      app.url: "https://github.com/bhusallaxman22/learngrammar"
+      maintainer: "bhusallaxman22"
+      dockage.icon: "https://raw.githubusercontent.com/bhusallaxman22/learngrammar/main/public/icon.png"
+    
+    # Logging Configuration
+    # Prevents logs from filling up disk space
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"    # Maximum log file size
+        max-file: "3"      # Keep last 3 log files
+    
+    # Security Options
+    security_opt:
+      - no-new-privileges:true  # Prevents privilege escalation
+    
+    # Read-only root filesystem for security
+    # App is static and doesn't need write access
+    read_only: true
+    
+    # Temporary filesystems for nginx runtime needs
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,size=50m
+      - /var/run:rw,noexec,nosuid,size=10m
+      - /tmp:rw,noexec,nosuid,size=50m
+    
+    # User (run as non-root for security)
+    # Uncomment if your nginx image supports it
+    # user: "nginx:nginx"
+
+# Network Configuration
+networks:
+  grammar-network:
+    driver: bridge
+    name: grammar-network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+
+# Volumes (if you need persistent data in the future)
+# Currently not needed as this is a static app
+# volumes:
+#   grammar-data:
+#     driver: local

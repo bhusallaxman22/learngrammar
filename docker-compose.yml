@@ -2,26 +2,80 @@ version: '3.8'
 
 services:
   grammar-app:
+    image: grammar-learning-app:latest
     build:
       context: .
       dockerfile: Dockerfile
     container_name: grammar-learning-app
+    hostname: grammar-app
+    
+    # Port mapping - Change 8080 to your preferred external port
     ports:
-      - "8080:80"  # Change 8080 to your preferred port
+      - "8080:80"
+    
+    # Always restart unless manually stopped
     restart: unless-stopped
+    
+    # Environment variables
     environment:
       - NODE_ENV=production
-    networks:
-      - grammar-network
+      - TZ=America/New_York  # Change to your timezone
+    
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'        # Maximum 1 CPU core
+          memory: 512M       # Maximum 512MB RAM
+        reservations:
+          cpus: '0.25'       # Minimum 0.25 CPU core
+          memory: 128M       # Minimum 128MB RAM
+    
+    # Health check to ensure app is running
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    
+    # Networking
+    networks:
+      - grammar-network
+    
+    # Labels for organization and management
     labels:
-      - "com.docker.compose.project=grammar-learning"
+      com.docker.compose.project: "grammar-learning"
+      app.name: "Grammar Learning App"
+      app.description: "Interactive English Grammar Learning Platform"
+      app.version: "1.0"
+      maintainer: "bhusallaxman22"
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Read-only root filesystem (app doesn't need to write)
+    read_only: true
+    
+    # Temporary filesystem for nginx cache and runtime
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,size=50m
+      - /var/run:rw,noexec,nosuid,size=10m
+      - /tmp:rw,noexec,nosuid,size=50m
 
 networks:
   grammar-network:
     driver: bridge
+    name: grammar-network
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
