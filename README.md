@@ -260,6 +260,40 @@ service cloud.firestore {
 
 ## 🚀 Deployment
 
+### Deploy to Docker / TrueNAS 🐳
+
+**Perfect for self-hosting on your own server or TrueNAS!**
+
+See detailed instructions in [DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md)
+
+#### Quick Start:
+
+```bash
+# 1. Build and deploy automatically
+./deploy.sh
+
+# 2. Or use docker-compose manually
+docker-compose up -d
+
+# 3. Access the app
+http://your-server-ip:8080
+```
+
+#### What's Included:
+- ✅ Multi-stage Docker build (optimized production image)
+- ✅ Nginx web server with gzip compression
+- ✅ Health checks and auto-restart
+- ✅ Docker Compose configuration
+- ✅ Automated deployment script
+- ✅ Complete TrueNAS setup guide
+
+**Files:**
+- `Dockerfile` - Production-ready container image
+- `docker-compose.yml` - Easy orchestration
+- `nginx.conf` - Optimized web server config
+- `deploy.sh` - One-command deployment script
+- `DOCKER_DEPLOYMENT.md` - Comprehensive guide
+
 ### Deploy to Vercel
 
 1. Push code to GitHub

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  grammar-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: grammar-learning-app
+    ports:
+      - "8080:80"  # Change 8080 to your preferred port
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - grammar-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.docker.compose.project=grammar-learning"
+
+networks:
+  grammar-network:
+    driver: bridge
